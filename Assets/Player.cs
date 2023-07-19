@@ -1,16 +1,14 @@
-using System.Collections;
-using System.Collections.Generic;
 using DefaultNamespace;
 using Fusion;
 using UnityEngine;
 
 public class Player : NetworkBehaviour
 {
-    private NetworkCharacterControllerPrototype _cc;
+    private Transform _cc;
 
     private void Awake()
     {
-        _cc = GetComponent<NetworkCharacterControllerPrototype>();
+        _cc = GetComponent<Transform>();
     }
 
     public override void FixedUpdateNetwork()
@@ -18,7 +16,7 @@ public class Player : NetworkBehaviour
         if (GetInput(out NetworkInputData data))
         {
             data.Direction.Normalize();
-            _cc.Move(5*data.Direction*Runner.DeltaTime);
+            _cc.localPosition +=(5*data.Direction*Runner.DeltaTime);
         }
     }
 }

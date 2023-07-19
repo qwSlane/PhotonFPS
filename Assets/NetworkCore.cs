@@ -1,29 +1,28 @@
 using System;
 using System.Collections.Generic;
-using DefaultNamespace;
+using UnityEngine;
 using Fusion;
 using Fusion.Sockets;
-using UnityEngine;
-using UnityEngine.SceneManagement;
+using DefaultNamespace;
 
+[RequireComponent(typeof(NetworkRunner))]
 public class NetworkCore : MonoBehaviour, INetworkRunnerCallbacks
 {
     [SerializeField] private NetworkPrefabRef _playerPrefab;
+    [SerializeField] private NetworkRunner _runner;
     private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
-    private NetworkRunner _runner;
 
-    async void StartGame(GameMode mode)
+    void StartGame(GameMode mode)
     {
         // Create the Fusion runner and let it know that we will be providing user input
-        _runner              = gameObject.AddComponent<NetworkRunner>();
         _runner.ProvideInput = true;
 
         // Start or join (depends on gamemode) a session with a specific name
-        await _runner.StartGame(new StartGameArgs()
+        _runner.StartGame(new StartGameArgs()
         {
             GameMode     = mode,
             SessionName  = "TestRoom",
-            Scene        = SceneManager.GetActiveScene().buildIndex,
+            Scene        = Idents.Scenes.GameIndex,
             SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
     }
@@ -53,16 +52,13 @@ public class NetworkCore : MonoBehaviour, INetworkRunnerCallbacks
 
     private void OnGUI()
     {
-        if (_runner == null)
+        if (GUI.Button(new Rect(0, 0, 200, 40), "Host"))
         {
-            if (GUI.Button(new Rect(0, 0, 200, 40), "Host"))
-            {
-                StartGame(GameMode.Host);
-            }
-            if (GUI.Button(new Rect(0, 40, 200, 40), "Join"))
-            {
-                StartGame(GameMode.Client);
-            }
+            StartGame(GameMode.Host);
+        }
+        if (GUI.Button(new Rect(0, 40, 200, 40), "Join"))
+        {
+            StartGame(GameMode.Client);
         }
     }
 
@@ -71,10 +67,10 @@ public class NetworkCore : MonoBehaviour, INetworkRunnerCallbacks
         var data = new NetworkInputData();
 
         if (Input.GetKey(KeyCode.W))
-            data.Direction += Vector3.forward;
+            data.Direction += Vector3.up;
 
         if (Input.GetKey(KeyCode.S))
-            data.Direction += Vector3.back;
+            data.Direction += Vector3.down;
 
         if (Input.GetKey(KeyCode.A))
             data.Direction += Vector3.left;
@@ -119,26 +115,21 @@ public class NetworkCore : MonoBehaviour, INetworkRunnerCallbacks
 
     public void OnCustomAuthenticationResponse(NetworkRunner runner, Dictionary<string, object> data)
     {
-       
     }
 
     public void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken)
     {
-       
     }
 
     public void OnReliableDataReceived(NetworkRunner runner, PlayerRef player, ArraySegment<byte> data)
     {
-       
     }
 
     public void OnSceneLoadDone(NetworkRunner runner)
     {
-      
     }
 
     public void OnSceneLoadStart(NetworkRunner runner)
     {
-        
     }
 }
