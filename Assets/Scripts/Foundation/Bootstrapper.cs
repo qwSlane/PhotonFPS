@@ -1,15 +1,15 @@
-using DefaultNamespace;
 using UnityEngine;
 
 public class Bootstrapper : MonoBehaviour
 {
-    [SerializeField] private GameData gameData;
-
+    public MainRunner NetworkRunnerPrefab;
+    public LobbyUI uipref;
+    private Game _game;
+    
     private void Awake()
     {
-        var game = new Game(gameData);
-        game.Init();
-        game.Start();
+        _game = new Game(Instantiate(NetworkRunnerPrefab));
+        _game.Start();
         
         DontDestroyOnLoad(this);
     }

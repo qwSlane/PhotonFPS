@@ -1,10 +1,16 @@
-﻿using UnityEngine;
+﻿using Fusion;
 
 namespace DefaultNamespace
 {
-    [CreateAssetMenu]
-    public class GameData : ScriptableObject
+    public struct GameData
     {
-        public NetworkCore CorePrefab;
+        public GameMode GameMode;
+        public string LobbyName;
+
+        public GameData(GameMode mode, string name)
+        {
+            GameMode  = mode;
+            LobbyName = name;
+        }
     }
 }

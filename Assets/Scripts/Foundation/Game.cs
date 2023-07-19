@@ -1,37 +1,33 @@
-using DefaultNamespace;
 using DefaultNamespace.Services;
+using DefaultNamespace.Services.Factory;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class Game 
 {
-    private readonly GameData _gameData;
+    private readonly MainRunner _runner;
     private GameStateMachine _stateMachine;
 
-    public Game(GameData gameData)
+    public Game(MainRunner runner)
     {
-        _gameData = gameData;
+        _runner       = runner;
+        _stateMachine = new GameStateMachine(RegisterServices());
     }
-
-    public void Init()
-    {
-        var services = RegisterServices();
-        _stateMachine = new GameStateMachine(services);
-        _stateMachine.Enter<InitServicesState>();
-    }
-
+    
     private Services RegisterServices()
     {
         var services = Services.Container;
         services
-            .Add<IAssetProvider>(new AssetProvider());
+            .Add<IAssetProvider>(new AssetProvider())
+            .Add<INetworkRunner>(_runner)
+            .Add<IFactory>(new GameFactory(_runner.Runner, services.Get<IAssetProvider>()));
 
+        _runner.Core.Init(services.Get<IFactory>());
+        
         return services;
     }
 
     public void Start()
     {
-        SceneManager.LoadScene(Idents.Scenes.Lobby);
-       
+        _stateMachine.Enter<InitLobbyState>();
     }
 }

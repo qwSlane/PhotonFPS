@@ -5,9 +5,10 @@ public class Services
     
     private Services(){}
     
-    public void Add<TService>(TService implementation) where TService : IService
+    public Services Add<TService>(TService implementation) where TService : IService
     {
         Implementation<TService>.ServiceInstance = implementation;
+        return this;
     }
 
     public TService Get<TService>() where TService : IService =>

@@ -251,4 +251,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b6a8c8c9fd5cf084180bf72f2aa801da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameData: {fileID: 11400000, guid: 7ef0dc447e222694d8543f457f4d641d, type: 2}
+  NetworkRunnerPrefab: {fileID: -4754187896502179667, guid: dcf26fec47c79a249bfb90ab6ac39460, type: 3}
+  uipref: {fileID: 5226306711887232705, guid: 926acf22685cf234f81bbc50613ee769, type: 3}

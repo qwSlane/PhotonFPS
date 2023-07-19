@@ -1,18 +1,20 @@
 using System;
 using System.Collections.Generic;
+using DefaultNamespace.Services.Factory;
 
 public class GameStateMachine
 {
-    private readonly Services _services;
-    private Dictionary<Type, IState> _states;
-    private IState _currentState;
+    private Dictionary<Type, IExitableState> _states;
+    private IExitableState _currentState;
 
     public GameStateMachine(Services services)
     {
-        _services = services;
-        _states = new Dictionary<Type, IState>()
+        _states = new Dictionary<Type, IExitableState>()
         {
-            [typeof(InitServicesState)] = new InitServicesState(),
+            [typeof(InitLobbyState)] = new InitLobbyState(this, services.Get<IFactory>()),
+            [typeof(LoadGameState)] = new LoadGameState(services.Get<IFactory>(), services.Get<INetworkRunner>()),
+            [typeof(GameLoopState)]  = new GameLoopState(),
+            [typeof(LoadLobbyState)]  = new LoadLobbyState(),
         };
     }
 
@@ -21,8 +23,14 @@ public class GameStateMachine
         var state = ChangeState<TState>();
         state.Enter();
     }
+    
+    public void Enter<TState, TPayload>(TPayload payload) where TState : class, IPayloadState<TPayload>
+    {
+        var state = ChangeState<TState>();
+        state.Enter(payload);
+    }
 
-    private IState ChangeState<TState>() where TState : class, IState
+    private TState ChangeState<TState>() where TState : class, IExitableState
     {
         _currentState?.Exit();
         var state = GetState<TState>();
@@ -30,5 +38,5 @@ public class GameStateMachine
         return state;
     }
 
-    private IState GetState<TState>() where TState : class, IState => _states[typeof(TState)];
+    private TState GetState<TState>() where TState : class, IExitableState  => _states[typeof(TState)] as TState;
 }

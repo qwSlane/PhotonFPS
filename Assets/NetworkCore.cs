@@ -4,38 +4,33 @@ using UnityEngine;
 using Fusion;
 using Fusion.Sockets;
 using DefaultNamespace;
+using DefaultNamespace.Services;
+using DefaultNamespace.Services.Factory;
 
 [RequireComponent(typeof(NetworkRunner))]
 public class NetworkCore : MonoBehaviour, INetworkRunnerCallbacks
 {
-    [SerializeField] private NetworkPrefabRef _playerPrefab;
-    [SerializeField] private NetworkRunner _runner;
     private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
+    private IFactory _factory;
 
-    void StartGame(GameMode mode)
+    public void Init(IFactory factory)
     {
-        // Create the Fusion runner and let it know that we will be providing user input
-        _runner.ProvideInput = true;
+        _factory = factory;
 
-        // Start or join (depends on gamemode) a session with a specific name
-        _runner.StartGame(new StartGameArgs()
-        {
-            GameMode     = mode,
-            SessionName  = "TestRoom",
-            Scene        = Idents.Scenes.GameIndex,
-            SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
-        });
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
+        Debug.Log("Joined");
         if (runner.IsServer)
         {
             // Create a unique position for the player
             Vector3 spawnPosition =
                 new Vector3((player.RawEncoded % runner.Config.Simulation.DefaultPlayers) * 3, 1, 0);
-            NetworkObject networkPlayerObject = runner.Spawn(_playerPrefab, spawnPosition, Quaternion.identity, player);
+            var networkPlayerObject =
+                _factory.CreateNetObject<NetworkObject>(AssetPathes.Network.PlayerPref, spawnPosition, player);
             // Keep track of the player avatars so we can remove it when they disconnect
+
             _spawnedCharacters.Add(player, networkPlayerObject);
         }
     }
@@ -47,18 +42,6 @@ public class NetworkCore : MonoBehaviour, INetworkRunnerCallbacks
         {
             runner.Despawn(networkObject);
             _spawnedCharacters.Remove(player);
-        }
-    }
-
-    private void OnGUI()
-    {
-        if (GUI.Button(new Rect(0, 0, 200, 40), "Host"))
-        {
-            StartGame(GameMode.Host);
-        }
-        if (GUI.Button(new Rect(0, 40, 200, 40), "Join"))
-        {
-            StartGame(GameMode.Client);
         }
     }
 
