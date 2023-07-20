@@ -1,6 +1,10 @@
 using DefaultNamespace;
+using DefaultNamespace.Services;
+using DefaultNamespace.Services.Factory;
+using DefaultNamespace.UI;
 using Fusion;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MainRunner : MonoBehaviour, INetworkRunner
 {
@@ -15,11 +19,10 @@ public class MainRunner : MonoBehaviour, INetworkRunner
     {
         DontDestroyOnLoad(this);
     }
-    
+
     public async void StartGame(GameMode mode, string room)
     {
         _runner.ProvideInput = true;
-        
         await _runner.StartGame(new StartGameArgs()
         {
             GameMode     = mode,
@@ -28,5 +31,4 @@ public class MainRunner : MonoBehaviour, INetworkRunner
             SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
         });
     }
-
 }

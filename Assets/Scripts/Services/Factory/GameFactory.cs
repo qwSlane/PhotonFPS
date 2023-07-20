@@ -10,29 +10,36 @@ namespace DefaultNamespace.Services.Factory
 
         public GameFactory(NetworkRunner runner, IAssetProvider assetProvider)
         {
-            _runner   = runner;
+            _runner        = runner;
             _assetProvider = assetProvider;
         }
 
-        public T Create<T>(string path, Vector3 at) where T: Object
+        public T Create<T>(string path, Vector3 at) where T : Object
         {
             var asset = _assetProvider.Asset<T>(path);
 
             return Object.Instantiate(asset, at, Quaternion.identity);
         }
-        
-        public T Create<T>(string path) where T: Object
+
+        public T Create<T>(string path) where T : Object
         {
             var asset = _assetProvider.Asset<T>(path);
 
             return Object.Instantiate(asset, Vector3.zero, Quaternion.identity);
         }
 
-        public T CreateNetObject<T>(string path, Vector3 at, PlayerRef player) where T: NetworkObject
+        public T CreateNetObject<T>(string path, Vector3 at, PlayerRef player) where T : NetworkObject
         {
             var asset = _assetProvider.Asset<T>(path);
 
             return _runner.Spawn(asset, at, Quaternion.identity, player) as T;
+        }
+
+        public T CreateNetBehavior<T>(string path, Vector3 at) where T : NetworkBehaviour
+        {
+            var asset = _assetProvider.Asset<T>(path);
+
+            return _runner.Spawn(asset, at, Quaternion.identity) as T;
         }
     }
 }

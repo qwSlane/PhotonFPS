@@ -1,6 +1,6 @@
 using DefaultNamespace.Services;
 using DefaultNamespace.Services.Factory;
-using UnityEngine;
+using DefaultNamespace.Services.InputService;
 
 public class Game 
 {
@@ -17,11 +17,12 @@ public class Game
     {
         var services = Services.Container;
         services
+            .Add<IInputService>(new InputService())
             .Add<IAssetProvider>(new AssetProvider())
             .Add<INetworkRunner>(_runner)
             .Add<IFactory>(new GameFactory(_runner.Runner, services.Get<IAssetProvider>()));
 
-        _runner.Core.Init(services.Get<IFactory>());
+        _runner.Core.Init(services.Get<IFactory>(), services.Get<IInputService>());
         
         return services;
     }
