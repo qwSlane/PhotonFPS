@@ -34,6 +34,13 @@ namespace DefaultNamespace.Services.Factory
 
             return _runner.Spawn(asset, at, Quaternion.identity, player) as T;
         }
+        
+        public T CreateNetBehavior<T>(string path, Vector3 at, PlayerRef player) where T : NetworkBehaviour
+        {
+            var asset = _assetProvider.Asset<T>(path);
+
+            return _runner.Spawn(asset, at, Quaternion.identity, player) as T;
+        }
 
         public T CreateNetBehavior<T>(string path, Vector3 at) where T : NetworkBehaviour
         {

@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Fusion;
 using Fusion.Sockets;
-using DefaultNamespace.Services;
 using DefaultNamespace.Services.Factory;
 using DefaultNamespace.Services.InputService;
 
@@ -12,46 +12,32 @@ public class NetworkCore : MonoBehaviour, INetworkRunnerCallbacks
 {
     [SerializeField] private MainRunner _mainRunner;
 
-    private IFactory _factory;
     private IInputService _inputService;
-    private Dictionary<PlayerRef, NetworkObject> _spawnedCharacters = new Dictionary<PlayerRef, NetworkObject>();
 
     public void Init(IFactory factory, IInputService inputService)
     {
-        _factory      = factory;
         _inputService = inputService;
+        _mainRunner.Init(factory);
     }
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player)
     {
-        Debug.Log("Joined");
-      
-            var networkPlayerObject = InitPlayer(runner, player);
-            _spawnedCharacters.Add(player, networkPlayerObject);
-        
-    }
-
-    private NetworkObject InitPlayer(NetworkRunner runner, PlayerRef player)
-    {
-        Vector3 spawnPosition =
-            new Vector3((player.RawEncoded % runner.Config.Simulation.DefaultPlayers) * 3, 1, 0);
-        var networkPlayerObject =
-            _factory.CreateNetObject<NetworkObject>(AssetPathes.Network.PlayerPref, spawnPosition, player);
-        return networkPlayerObject;
+        _mainRunner.JoinPlayer(runner, player);
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player)
     {
-        // Find and remove the players avatar
-        if (_spawnedCharacters.TryGetValue(player, out NetworkObject networkObject))
-        {
-            runner.Despawn(networkObject);
-            _spawnedCharacters.Remove(player);
-        }
+        _mainRunner.Left(runner, player);
     }
 
     public void OnInput(NetworkRunner runner, NetworkInput input)
     {
+        if (runner.ActivePlayers.Count() == 1)
+        {
+            return;
+        }
+        Debug.Log($"{runner.ActivePlayers.Count()}");
+
         var data = _inputService.GetNetworkInput();
 
         if (Input.GetKey(KeyCode.W))

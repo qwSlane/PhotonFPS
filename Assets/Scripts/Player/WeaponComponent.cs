@@ -6,11 +6,7 @@ using UnityEngine;
 public class WeaponComponent : NetworkBehaviour
 {
     [SerializeField] private Bullet Bullet;
-
     [SerializeField] private Player Player;
-
-    [Networked(OnChanged = nameof(OnFireChanged))]
-    public bool isFiring { get; set; }
 
     private float lastTimeFired = 0.15f;
 
@@ -32,10 +28,11 @@ public class WeaponComponent : NetworkBehaviour
             return;
         }
 
-        Bullet bullet = Runner.Spawn(Bullet, transform.localPosition, Quaternion.identity, Runner.LocalPlayer);
-        bullet.Init(directionVector, Player.Hitbox);
+        Runner.Spawn(Bullet, transform.localPosition, Quaternion.identity, Object.InputAuthority, (runner, spawned) =>
+        {
+          spawned.GetComponent<Bullet>().Init(directionVector, Player.Hitbox);  
+        });
         lastTimeFired = Time.time;
     }
 
-    static void OnFireChanged(Changed<WeaponComponent> changed) { }
 }

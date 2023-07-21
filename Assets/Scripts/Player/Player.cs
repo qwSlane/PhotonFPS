@@ -1,38 +1,85 @@
-using System;
+using System.Linq;
 using DefaultNamespace;
 using DefaultNamespace.Player;
 using DefaultNamespace.Services;
 using DefaultNamespace.Services.Factory;
 using DefaultNamespace.UI;
 using Fusion;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class Player : NetworkBehaviour
 {
     [SerializeField] private Hitbox _hitbox;
-    [SerializeField] private HpHandler HpHandler;
-    [SerializeField] private WeaponComponent WeaponComponent;
+    [SerializeField] private HpHandler _hpHandler;
+    [SerializeField] private PickHandler _pickHandler;
+    [SerializeField] private Rigidbody2D _rb;
+    [SerializeField] private SpriteRenderer _spriteRenderer;
 
-    private HUD _hud;
+    public TextMeshProUGUI PlayerNickName;
 
     private Vector2 _forward;
-    [SerializeField] private Rigidbody2D rb;
-    private float movementSpeed = 5f;
-    private IFactory _factory;
+
+    [Networked(OnChanged = nameof(OnNickChanged))]
+    public NetworkString<_8> NickName { get; set; }
+
+    private float movementSpeed = 110f;
     private const float eps = 0.05f;
 
     public Hitbox Hitbox => _hitbox;
     public Vector2 Forward => _forward;
 
+    public bool IsAlive()
+    {
+        return _hpHandler.isDead;
+    }
+
+    static void OnNickChanged(Changed<Player> changed)
+    {
+        changed.Behaviour.OnNickNameChanged();
+    }
+
+    private void OnNickNameChanged()
+    {
+        PlayerNickName.text = NickName.ToString();
+    }
+
+    public (string, int) GetPlayerData()
+    {
+        return (NickName.ToString(), _pickHandler.CoinCount);
+    }
+
     public override void Spawned()
     {
         base.Spawned();
 
-        _factory = Services.Container.Get<IFactory>();
+        var runner  = Services.Container.Get<INetworkRunner>();
+        var factory = Services.Container.Get<IFactory>();
+        if (Object.HasInputAuthority)
+        {
+            var hud = factory.Create<HUD>(AssetPathes.UI.HUD);
+            _hpHandler.Init(hud.HpBar, runner, this);
+            _pickHandler.Init(hud.CoinsBar);
 
-        _hud = _factory.Create<HUD>(AssetPathes.UI.HUD);
-        HpHandler.Init(_hud.HpBar);
-       // WeaponComponent.Init(_factory);
+            RPC_SetNickName(PlayerPrefs.GetString("NickName"));
+
+            runner.AddPlayer(Runner.LocalPlayer, this);
+
+            int color = Runner.ActivePlayers.Count() % 3;
+
+            switch (color)
+            {
+                case 2:
+                    _spriteRenderer.color = Color.blue;
+                    break;
+                case 1:
+                    _spriteRenderer.color = Color.green;
+                    break;
+            }
+            
+            
+        }
     }
 
     public override void FixedUpdateNetwork()
@@ -44,19 +91,25 @@ public class Player : NetworkBehaviour
         }
     }
 
+    [Rpc(RpcSources.All, RpcTargets.All)]
+    private void RPC_SetNickName(string nickname)
+    {
+        this.NickName = nickname;
+    }
+
     private void Move(NetworkInputData data)
     {
         data.Direction.Normalize();
-        rb.AddForce(0.5f * data.Direction, ForceMode2D.Impulse);
+        _rb.AddForce(4 * data.Direction, ForceMode2D.Impulse);
 
-        if (rb.velocity.magnitude > movementSpeed)
+        if (_rb.velocity.magnitude > movementSpeed)
         {
-            rb.velocity = rb.velocity.normalized * movementSpeed;
+            _rb.velocity = _rb.velocity.normalized * movementSpeed;
         }
 
         if (data.Direction == Vector3.zero)
         {
-            rb.velocity = Vector3.zero;
+            _rb.velocity = Vector3.zero;
         }
     }
 

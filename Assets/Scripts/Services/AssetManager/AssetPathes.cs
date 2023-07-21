@@ -5,6 +5,7 @@
         public class UI
         {
             public static string HUD = "Prefabs/UI/HUD";
+            public static string Winner = "Prefabs/UI/Winner";
             public const string LobbyUI = "Prefabs/UI/LobbyUI";
         }
 

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,7 +9,6 @@ public class HPBar : MonoBehaviour
 
     public void TakeDamage()
     {
-        Debug.Log("taken dmg");
         CurrentHp -= 1;
         Hp[CurrentHp].color = Color.clear;
     }

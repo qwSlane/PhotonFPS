@@ -8,19 +8,20 @@ namespace DefaultNamespace.Player
     {
         private Vector2 _direction;
         [SerializeField] private LayerMask layerMask;
-        [SerializeField] private NetworkObject _networkObject;
         private Hitbox _parent;
+        private bool isInitialized = false;
 
         public void Init(Vector2 direction, Hitbox parent)
         {
             _direction    = direction;
             _parent       = parent;
+            isInitialized = true;
         }
 
         private bool IsHit()
         {
             List<LagCompensatedHit> hits = new List<LagCompensatedHit>();
-            Runner.LagCompensation.OverlapSphere(transform.localPosition, 0.5f, Object.InputAuthority, hits, layerMask,
+            Runner.LagCompensation.OverlapSphere(transform.localPosition, 5f, Object.InputAuthority, hits, layerMask,
                 HitOptions.IncludePhysX);
 
             if (hits.Count != 0)
@@ -35,7 +36,7 @@ namespace DefaultNamespace.Player
                     hit.Hitbox.transform.root.TryGetComponent<HpHandler>(out var component);
                     if (component != null)
                     {
-                        //   component.OnTakeDamage();
+                        component.OnTakeDamage();
                     }
                     return true;
                 }
@@ -46,10 +47,11 @@ namespace DefaultNamespace.Player
 
         public override void FixedUpdateNetwork()
         {
-            transform.Translate(_direction * 20f * Runner.DeltaTime);
-                if (IsHit())
-                    Runner.Despawn(Object);
-            
+            if (!isInitialized)
+                return;
+            transform.Translate(_direction * 400f * Runner.DeltaTime);
+            if (IsHit())
+                Runner.Despawn(Object);
         }
     }
 }
